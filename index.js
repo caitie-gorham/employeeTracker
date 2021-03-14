@@ -104,7 +104,6 @@ const viewEmployees = () => {
 
         // Rerun switch case function
         return start();
-
     });
 }
 
@@ -131,8 +130,26 @@ const updateEmployeeRole = () => {
 const updateEmployeeManager = () => {
 
 }
-const viewRoles = () => {
 
+const viewRoles = () => {
+    const sqlStatement = `SELECT * FROM roles`;
+    connection.query(sqlStatement, (err, data) => {
+        if (err) throw err;
+
+        let rolesArray = [];
+
+        data.forEach(({ title, salary, department_id }) => {
+               let roles = [title, salary, department_id];
+               rolesArray.push(roles);
+        });
+
+        console.log('\n');
+        console.table(['Title', 'Salary', 'Department Id'], rolesArray);
+        console.log('\n');
+
+        // Rerun switch case function
+        return start();
+    });
 }
 
 const addRole = () => {
@@ -140,6 +157,23 @@ const addRole = () => {
 }
 
 const viewDepartment = () => {
+    const sqlStatement = 'SELECT * FROM department';
+    connection.query(sqlStatement, (err, data) => {
+        if (err) throw err;
+
+        let deptsArray = [];
+        data.forEach(({ dept_name }) => {
+               let depts = [dept_name];
+               deptsArray.push(depts);
+        });
+
+        console.log('\n');
+        console.table(['Department Name'], deptsArray);
+        console.log('\n');
+
+        // Rerun switch case function
+        return start();
+    }); 
 
 }
 

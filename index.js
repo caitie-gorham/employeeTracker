@@ -177,6 +177,38 @@ const viewDepartment = () => {
 
 }
 
-const addDepartment = () => {
+function addDepartment() {
+    let sqlStatement = `SELECT * FROM department`
+    connection.query(sqlStatement, (err, res) => {
+        if (err) throw err
+        inquirer.prompt([{
+            type: "input",
+            name: "deptId",
+            message: "New department ID: ",
+            validate: val => {
+                if (!/^[0-9]+$/gi.test(val)) {
+                    return "Numbers only";
+                }
+                return true;
+            }
+        }, {
+            type: "input",
+            name: "deptName",
+            message: "Please enter name for new department",
+            validate: (name) => {
+                if (!/^[aA-zZ]+$/gi.test(name)) {
+                    return "Text only";
+                }
+                return true;
+            }
+        }]).then(response => {
+                let sqlStatement2 = `INSERT INTO department VALUES (?,?)`
+                connection.query(sqlStatement2, [response.deptId, response.deptName], (err) => {
+                    if (err) throw err
+                    console.log(`${response.deptName} added as a new department`)
+                    start();
+                })
+            })
+    })
 
 }

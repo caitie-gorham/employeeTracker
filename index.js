@@ -24,11 +24,8 @@ const start = () => {
             choices: [
                 'View all employees',
                 'View all employees by department',
-                'View all employees by manager',
                 'Add employee',
-                'Remove employee',
                 'Update employee role',
-                'Update employee manager',
                 'View all roles',
                 'Add role',
                 'View all departments',
@@ -46,24 +43,12 @@ const start = () => {
                 viewEmployeesDep()
                 break;
 
-            case 'View all employees by manager':
-                viewEmployeesMan()
-                break;
-
             case 'Add employee':
                 addEmployee()
                 break;
 
-            case 'Remove employee':
-                removeEmployee()
-                break;
-
             case 'Update employee role':
                 updateEmployeeRole()
-                break;
-
-            case 'Update employee manager':
-                updateEmployeeManager()
                 break;
 
             case 'View all roles':
@@ -108,27 +93,135 @@ const viewEmployees = () => {
 }
 
 const viewEmployeesDep = () => {
+    const sqlStatement = ("SELECT * FROM department");
 
-}
+    connection.query(sqlStatement, (err, res) => {
+        if (err) throw err;
+        const depart = res.map(element => {
+            return { name: `${element.name}` }
+        });
 
-const viewEmployeesMan = () => {
+        inquirer.prompt([{
+            type: "list",
+            name: "department",
+            message: "Choose department",
+            choices: depart
 
+        }]).then(response => {
+            const sqlStatement2 = `SELECT e.first_name, e.last_name, e.role_id AS roles, CONCAT(m.first_name,' ',m.last_name) 
+                AS manager, d.name as department FROM employee e
+                LEFT JOIN roles r on e.role_id = r.id
+                LEFT JOIN department d ON r.department_id = d.id
+                LEFT JOIN employee m ON e.manager_id = m.id
+                WHERE ?`
+            connection.query(sqlStatement2, [{ name: response.department }], function (err, res1) {
+                if (err) throw err;
+                console.table(res1)
+
+                // Rerun switch case function
+                start();
+            })
+        })
+    })
 }
 
 const addEmployee = () => {
+    const sqlStatement = 'SELECT * FROM employee';
+    connection.query(sqlStatement, (err, data) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                type: 'input',
+                message: 'New Employee First Name: ',
+                name: 'firstName'
+            },
+            {
+                type: 'input',
+                message: 'New Employee Last Name: ',
+                name: 'lastName'
+            },
+            {
+                type: 'input',
+                message: 'New Employee Role ID: ',
+                name: 'roleID',
+                validate: (answer) => {
+                    valid = /^[0-9]+$/.test(answer)
+                    if (!valid) {
+                        return console.log(" Numbers only")
+                    }
+                    return true;
+                }
+            },
+            {
+                type: 'input',
+                message: 'New Employee Manager ID (if no manager, leave blank): ',
+                name: 'managerID'
+            }
+        ]).then((response) => {
 
-}
+            sqlStatement2 = 'INSERT INTO employee SET ?';
+            connection.query(sqlStatement2, 
+                {
+                    first_name: response.firstName,
+                    last_name: response.lastName,
+                    role_id: response.roleID,
+                    manager_id: response.managerID
+                }, 
+                err => {
+                if (err) throw err;
+        
+                console.table([{First_Name: `${response.firstName}`, Last_Name: `${response.lastName}`, Role_ID: `${response.roleID}`, Manager_ID: `${response.managerID}`}]);
 
-const removeEmployee = () => {
-
+                // Rerun switch case function
+                return start();
+            });
+        }).catch(err => {console.error(err)});
+    })
 }
 
 const updateEmployeeRole = () => {
+    query = 'SELECT * FROM employee';
+    connection.query(query, (err, data) => {
+        if (err) throw err;
 
-}
+        let employeesArray = [];
+        data.forEach(({ id, first_name, last_name, role_id, manager_id }) => {
+               let employ = [id, first_name, last_name, role_id, manager_id];
+               employeesArray.push(employ);
+        });
+        console.table(['Employee ID', 'First Name', 'Last Name', 'Role Id', 'Manager_ID'], employeesArray);
 
-const updateEmployeeManager = () => {
+        inquirer.prompt([
+            {
+                type: 'choice',
+                message: 'Employee ID to be updated:',
+                name: 'selectEmployee',
+                choices() {
+                    const employeeIDArray = [];
+                    data.forEach(({id}) => {
+                        employeeIDArray.push(id);
+                    });
+                    return employeeIDArray;
+                }
+            },
+            {
+                type: 'input',
+                message: 'New Role ID: ',
+                name: 'roleID'
+            }
+        ]).then((response) => {
 
+            queryInsert = 'UPDATE employee SET role_id = ? WHERE id = ?';
+            connection.query(queryInsert, [response.roleID, response.selectEmployee], (err, data) => {
+                if (err) throw err;
+        
+                console.table(data);
+
+                // Rerun switch case function
+                return start();
+            });
+        }).catch(err => {console.error(err)});
+    });   
 }
 
 const viewRoles = () => {
@@ -198,6 +291,8 @@ const addRole = () => {
                 connection.query(sqlStatement2, [response.roleId, response.role, response.salary, response.deptId], function (err) {
                     if (err) throw err;
                     console.log(`${response.role} added as new role`)
+
+                    // Rerun switch case function
                     start();
                 })
             })
@@ -254,6 +349,8 @@ function addDepartment() {
                 connection.query(sqlStatement2, [response.deptId, response.deptName], (err) => {
                     if (err) throw err
                     console.log(`${response.deptName} added as a new department`)
+
+                    // Rerun switch case function
                     start();
                 })
             })

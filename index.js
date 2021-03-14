@@ -1,6 +1,7 @@
 // add dependencies
 const inquirer = require('inquirer');
 const connection = require('./config/connection.js');
+const cTable = require('console.table');
 
 // set up connection
 connection.connect((err) => {
@@ -14,7 +15,7 @@ connection.connect((err) => {
 });
 
 // start function with inquirer prompt and switch/case for each choice
-function start() {
+const start = () => {
     inquirer.prompt([
         {
             type: 'list',
@@ -35,62 +36,113 @@ function start() {
                 'Quit'
             ]
         }
-    ]).then(function ({ choices }) {
-        if (choices != "Quit") {
-            processChoice(choices, function () {
-                start();
-            })
-        } else {
-            connection.end()
+    ]).then((response) => {
+        switch (response.choices) {
+            case 'View all employees':
+                viewEmployees()
+                break;
+
+            case 'View all employees by department':
+                viewEmployeesDep()
+                break;
+
+            case 'View all employees by manager':
+                viewEmployeesMan()
+                break;
+
+            case 'Add employee':
+                addEmployee()
+                break;
+
+            case 'Remove employee':
+                removeEmployee()
+                break;
+
+            case 'Update employee role':
+                updateEmployeeRole()
+                break;
+
+            case 'Update employee manager':
+                updateEmployeeManager()
+                break;
+
+            case 'View all roles':
+                viewRoles()
+                break;
+
+            case 'Add role':
+                addRole()
+                break;
+
+            case 'View all departments':
+                viewDepartment()
+                break;
+
+            case 'Add department':
+                addDepartment()
+                break;
+
+            case 'Quit':
+                connection.end()
         }
-        console.log(choices);
-    });
+    }).catch(err => { console.error(err) });
 };
 
-function switchCase(choices, spec) {
-    switch (choices) {
-        case 'View all employees':
-            viewEmployees(spec)
-            break;
+const viewEmployees = () => {
+    const sqlStatement = `SELECT * FROM employee`;
+    connection.query(sqlStatement, (err, data) => {
+        if (err) throw err;
+        let employeesArray = [];
+        data.forEach(({ id, first_name, last_name, role_id, manager_id }) => {
+            let employees = [id, first_name, last_name, role_id, manager_id];
+            employeesArray.push(employees);
+        });
 
-        case 'View all employees by department':
-            viewEmployeesDep(spec)
-            break;
+        console.log('\n');
+        console.table(['Employee ID', 'First Name', 'Last Name', 'Role Id', 'Manager ID'], employeesArray);
+        console.log('\n');
 
-        case 'View all employees by manager':
-            viewEmployeesMan(spec)
-            break;
+        // Rerun switch case function
+        return start();
 
-        case 'Add employee':
-            addEmployee(spec)
-            break;
+    });
+}
 
-        case 'Remove employee':
-            removeEmployee(spec)
-            break;
+const viewEmployeesDep = () => {
 
-        case 'Update employee role':
-            updateEmployeeRole(spec)
-            break;
+}
 
-        case 'Update employee manager':
-            updateEmployeeManager(spec)
-            break;
+const viewEmployeesMan = () => {
 
-        case 'View all roles':
-            viewRoles(spec)
-            break;
+}
 
-        case 'Add role':
-            addRole(spec)
-            break;
+const addEmployee = () => {
 
-        case 'View all departments':
-            viewDepartment(spec)
-            break;
+}
 
-        case 'Add department':
-            addDepartment(spec)
-            break;
-    }
+const removeEmployee = () => {
+
+}
+
+const updateEmployeeRole = () => {
+
+}
+
+const updateEmployeeManager = () => {
+
+}
+const viewRoles = () => {
+
+}
+
+const addRole = () => {
+
+}
+
+const viewDepartment = () => {
+
+}
+
+const addDepartment = () => {
+
 }

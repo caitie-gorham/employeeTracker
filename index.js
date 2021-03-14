@@ -153,7 +153,55 @@ const viewRoles = () => {
 }
 
 const addRole = () => {
-
+    let sqlStatement = `SELECT * FROM roles`
+    connection.query(sqlStatement, (err, data) => {
+        if (err) throw err
+        inquirer.prompt([
+            {
+                type: "input",
+                name: "roleId",
+                message: "New Role ID: ",
+                validate: val => {
+                    if (!/^[0-9]+$/gi.test(val)) {
+                        return "Numbers only";
+                    }
+                    return true;
+                }
+                
+            }, {
+                type: "input",
+                name: "role",
+                message: "New Role Title: ",
+            }, {
+                type: "input",
+                name: "salary",
+                message: "New Role Salary: ",
+                validate: val => {
+                    if (!/^[0-9]+$/gi.test(val)) {
+                        return "Numbers only";
+                    }
+                    return true;
+                }
+            }, {
+                type: "input",
+                name: "deptId",
+                message: "New Role Department ID: ",
+                validate: val => {
+                    if (!/^[0-9]+$/gi.test(val)) {
+                        return "Numbers only";
+                    }
+                    return true;
+                }
+            }])
+            .then(function (response) {
+                let sqlStatement2 = `INSERT INTO roles VALUES (?,?,?,?)`
+                connection.query(sqlStatement2, [response.roleId, response.role, response.salary, response.deptId], function (err) {
+                    if (err) throw err;
+                    console.log(`${response.role} added as new role`)
+                    start();
+                })
+            })
+    })
 }
 
 const viewDepartment = () => {
